@@ -1,7 +1,7 @@
 "use client";
 
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
 
 function isSafeNextPath(value) {
   return typeof value === "string" && value.startsWith("/") && !value.startsWith("//");
@@ -15,7 +15,7 @@ async function readJsonSafely(response) {
   }
 }
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const configMissing = searchParams.get("error") === "config";
@@ -60,27 +60,45 @@ export default function LoginPage() {
   }
 
   return (
+    <section className="authCard">
+      <p className="eyebrow">受保护访问</p>
+      <h1>Paste Logbook</h1>
+      <p className="subtext">这个页面已经启用密码保护。</p>
+
+      <form onSubmit={onSubmit} className="authForm">
+        <input
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          placeholder="输入访问密码"
+          autoFocus
+        />
+        <button type="submit" disabled={busy}>
+          {busy ? "验证中..." : "进入"}
+        </button>
+      </form>
+
+      <p className={`status ${messageTone}`}>{message}</p>
+    </section>
+  );
+}
+
+function LoginFallback() {
+  return (
+    <section className="authCard">
+      <p className="eyebrow">受保护访问</p>
+      <h1>Paste Logbook</h1>
+      <p className="subtext">正在准备登录页面...</p>
+    </section>
+  );
+}
+
+export default function LoginPage() {
+  return (
     <main className="authPage">
-      <section className="authCard">
-        <p className="eyebrow">受保护访问</p>
-        <h1>Paste Logbook</h1>
-        <p className="subtext">这个页面已经启用密码保护。</p>
-
-        <form onSubmit={onSubmit} className="authForm">
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="输入访问密码"
-            autoFocus
-          />
-          <button type="submit" disabled={busy}>
-            {busy ? "验证中..." : "进入"}
-          </button>
-        </form>
-
-        <p className={`status ${messageTone}`}>{message}</p>
-      </section>
+      <Suspense fallback={<LoginFallback />}>
+        <LoginForm />
+      </Suspense>
     </main>
   );
 }
